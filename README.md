@@ -79,9 +79,12 @@ Pseudo-YAML structure.
   'ipld-image-version': 1
 
   # The Image this data was derived from, if any
-  # If image is lossy compressed, this MUST be set to a losslessly compressed
   # It SHOULD be used when processing an image, say when overlaying text, changing colors etc
   derivedfrom: { '\': Image }
+
+  # If lossy compressed, this SHOULD be set to a losslessly compressed version
+  # If processing an image, and this is set, the client SHOULD use canonicalversion instead of this one
+  canonicalversion: { '\': Image }
 
   # size of each tile
   tilesize: { x: 256, y: 128 }
