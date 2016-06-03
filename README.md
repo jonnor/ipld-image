@@ -78,6 +78,11 @@ Pseudo-YAML structure.
   # IPLD-image protocol version
   'ipld-image-version': 1
 
+  # The Image this data was derived from, if any
+  # If image is lossy compressed, this MUST be set to a losslessly compressed
+  # It SHOULD be used when processing an image, say when overlaying text, changing colors etc
+  derivedfrom: { '\': Image }
+
   # size of each tile
   tilesize: { x: 256, y: 128 }
   # number of tiles spanned.
