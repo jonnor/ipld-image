@@ -101,26 +101,29 @@ Pseudo-YAML structure.
     height: 1000
 
   # mipmap structure containing the image data
-  # stored in a scanline fashion
-  # ie: the first tile is at x=0,y=0, then follows y=0, x=1,2,3,4,5 -> (tiles.x-1)
-  # then everything in y=1. Repeat untill all rows are included
-  level0: [ { '/': Tile,} { '/': Tile } ... ]  # n=tiles.x*tiles.y
-  level1: [ .. ] # n/=4
-  level2: [ .. ] # n/=4
+  level0: { '\': TileList } # n=tiles.x*tiles.y
+  level1: { '\': TileList } [ .. ] # n/=4
+  level2: { '\': TileList } # n/=4
   ...
-  levelH: [ .. ] n=1
+  levelH: { '\': TileList } n=1
 ```
-
 
 ```yaml
   ## Tile
-
   # format of data
   format: "png-idat"
   # size of data in pixels
   size: { x: 256, y: 128 }
   # link to the chunk of image data
   data: {"/",  }
+```
+
+```yaml
+  ## TileList
+  # stored in a scanline fashion
+  # ie: the first tile is at x=0,y=0, then follows y=0, x=1,2,3,4,5 -> (tiles.x-1)
+  # then everything in y=1. Repeat untill all rows are included
+  [ { '/': Tile,} { '/': Tile } ... ]
 ```
 
 An advantage of this initial spec is that the `Tile`, containing the image data,
