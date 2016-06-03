@@ -8,6 +8,7 @@ having to operate on opaque blobs of serialized images (like a PNG or JPEG).
 **Just a crazy idea**. See [TODO](#todo)
 
 * ipld-image is just a working name
+* When working, spec will go to https://github.com/ipfs/specs
 
 ## Motivation
 
@@ -16,15 +17,37 @@ Their primarily (only) representation is that of a file, a blob of bytes, which 
 apart from its [MIME-type](https://en.wikipedia.org/wiki/Media_type).
 The file typically contains compressed pixel data, and sometimes some metadata.
 
+### Inefficient processing
+
 So if we want to display the image, we have to download and process the whole file.
 For some formats one can stream only the beginning of a file, and from that get a lower-quality
 image from it. This is intended to allow [progressive rendering](https://blog.codinghorror.com/progressive-image-rendering/).
 Theoretically one could cancel the stream when one deems the quality high-enough, but no web browsers available does this
 - and unassisted it cannot know what quality is considered good-enough.
-This means that there is no .
 
+This means that there is no space savings possible.
+This is inefficient, and painful - especially on slow pay-per-MB connections as is typical on mobile.
+Furthermore due to responsive design, the same image (semantically) may be presented at many different screen sizes,
+depending on the layout of the page it is included o.
+With smart-cropping the image might be not just rescaled, but also show only a subset of the image.
 
-An example of an image processing server is [imgflo-server](https://github.com/imgflo/imgflo-server).
+To solve this today, one typically uses an image processing server which
+automatically creates (multiple) down-scaled versions of an image.
+Examples include [imgflo-server](https://github.com/imgflo/imgflo-server).
+
+However, the processing server must also download the entire image, even if it knows
+that only a downscaled cropped part would be needed.
+
+### Lack of metadata
+(addressing this might be out-of-scope for v1)
+
+When receiving a down-scaled image blob, there is (in general) no way to find back the original source image.
+This means that for instance author attribution must be side-channeled (and usually is not).
+
+Most processing services strip all metadata in the process of creating versions for display.
+In a few cases this can be a benefit, as privacy-invading metadata like geographic location is not present.
+But mostly it limits usefulness, like one cannot know which camera settings where used,
+so one cannot do after-the-fact projection/lens correction.
 
 ## Background
 
@@ -41,10 +64,11 @@ a less generic version of the same basic idea.
 
 A [mipmap](https://en.wikipedia.org/wiki/Mipmap) is an structure for efficiently storing
 images at different levels of detail. At the lowest level are the original image in full resolution,
-then at each level up the. So 4 tiles at level N becomes 1 tile at level N+1.
+then at each level up the image resolution is halved in both width and height.
+So 2x2=4 tiles at level N becomes 1 tile at level N+1.
 
 ipld-image uses a mipmapped structure, but instead of each level being a continous buffer,
-it is a set of tiles, each tile containing a piece of the pixel data.
+it is a set of tiles, with each tile containing a piece of the pixel data.
 
 Pseudo-YAML structure.
 
@@ -120,6 +144,7 @@ However it becomes really tricky to assemble a substream.
 ## Transformation on the dataformat
 
 `TODO: define usecases which we want the dataformat to support (and which ones are not so important).`
+
 `TODO: write how each of these would be performed on example data`
 
 ## TODO
@@ -136,12 +161,13 @@ However it becomes really tricky to assemble a substream.
 
 ## 0.1.0: Minimally useful
 
-* Can we do this without IPFS 0.5??
-For instance by putting the serialized IPLD structure into database/IPFS as a blob (JSON)?
+* Figure out how we do this without IPFS 0.5.
+Putting serialized IPLD structure into database/IPFS as JSON blob?
 * Implement support in imgflo-server
-* Split out spec from implementation
+* Split out spec from implementation, put into https://github.com/ipfs/specs
 
 ## Later
 
 * Sketch out how this could be used to implement a GeglTileStore, for backing buffers in
 [GEGL](http://gegl.org), the image processing library used by imgflo-server and GIMP
+* Consider extending for video
