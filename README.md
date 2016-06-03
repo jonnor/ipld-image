@@ -66,6 +66,10 @@ A [mipmap](https://en.wikipedia.org/wiki/Mipmap) is an structure for efficiently
 images at different levels of detail. At the lowest level are the original image in full resolution,
 then at each level up the image resolution is halved in both width and height.
 So 2x2=4 tiles at level N becomes 1 tile at level N+1.
+A fully mipmapped structure is at most 33% larger than the original image.
+
+This also means that an image at level=2 (1/4 width and height) is
+1/16 the number of pixels that needs to be downloaded and processed.
 
 ipld-image uses a mipmapped structure, but instead of each level being a continous buffer,
 it is a set of tiles, with each tile containing a piece of the pixel data.
@@ -142,15 +146,15 @@ b) let each tile link to the tiles on the level under. This means a lot of indir
 * How to deal with fact that non-square images will not reduce down to a level with single. 
 Must one render transparency into chunks then?
 Kind-of a case where we get sparse-ness further up in the mipmaps
-* What would be good initial format. Should probably be lossless compression.
-PNG is most widely supported. Both JPEG-LS, JPEG2000, JPEG XR and WebP seems to be be pretty poorly supported...
-* Should one allow multhiple representations for a tile? Say different compression/formats
+* Should one allow multiple representations for a tile? Say different compression/formats
 * Should we allow sparse images (some areas not covered by tile).
 Problem is then need to spec out what this should be filled, which could be limiting. Transparent chunk?
 Also, would not have much space-saving because likely a fully transparent tile will already be (de-duplication is builtin).
 Non-rectangular images would have more to gain than... But then also need to be able to specify non-rectangular boundary (polygon etc)
 * Should we allow non-uniform chunk sizes? This heavily suggests sparse images also.
-However it becomes really tricky to assemble a substream.
+However it becomes really tricky to assemble a linear substream for a rectangular image, if chunks can be any size and any location..
+
+
 
 ## Transformation on the dataformat
 
