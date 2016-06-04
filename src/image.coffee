@@ -45,24 +45,40 @@ repeatedImage = (shape, tilehash) ->
   return tiles
 
 # TODO: don't instead render into memory, find out how to concat PNG IDAT chunks
+# TODO: handle fetching of tiles dynamically, take ipfs as argument
 # TODO: support cropping
-# TODO: support 
-renderBlob = (image) ->
+# TODO: support downscaling by accessing mipmap structure
+renderBlob = (image, tiles) ->
   imageSize =
     x: image.tilesize.x*image.tiles.x
     y: image.tilesize.y*image.tiles.y
-  console.log ''
+  console.log 's', imageSize
 
-  canvas = new Canvas(200, 200)
-  img = new Image;
-  img.src = canvas.toBuffer();
-  ctx.drawImage(img, 0, 0, 50, 50);
-  ctx.drawImage(img, 50, 0, 50, 50);
-  ctx.drawImage(img, 100, 0, 50, 50);
+  canvas = new Canvas imageSize.x, imageSize.y
+  ctx = canvas.getContext '2d'
+
+  shape = image.tiles
+  for y in [0...shape.y]
+    for x in [0...shape.x]
+      idx = (y*shape.y)+x
+      console.log 'idx', idx
+      tileBuffer = tiles[idx]
+
+      console.log tileBuffer
+      tileImg = new Image
+
+      tileImg.onerror = (err) ->
+        throw err
+      tileImg.onload = () ->
+        ctx.drawImage tileImg, 0, 0, image.tilesize.x, image.tilesize.x
+      tileImg.src = tileBuffer
+
+  return canvas
 
 module.exports =
   repeat: repeatedImage
   construct: serializeImage
   hash: ipld.multihash
   deserialize: ipld.unmarshal
+  render: renderBlob
 
