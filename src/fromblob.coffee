@@ -23,11 +23,4 @@ exports.main = main = () ->
     console.log 'ipfs hash: ', block.Key
   .catch (e) ->
     console.error e
-    console.error e.stack if e.stack
     process.exit 1
-
-# FIXME: create the reverse tool, ipld-image-toblob
-  # given an IPFS hash of image IPLD
-  # fetch and deserialize the Image object
-  # fetch all the tiles
-  # assemble a PNG file blob from the file
