@@ -91,6 +91,8 @@ derivedfrom: { '\': Image }
 canonicalversion: { '\': Image }
 
 # size of each tile
+# The tile size should be such that each Tile is less than the IPFS block size
+# Currently block size is 256KB. An 256x256 pixel image with 3-4 bytes per pixel should almost always be under this
 tilesize: { x: 256, y: 128 }
 # number of tiles spanned.
 tiles: { x: 10, y: 15 }
