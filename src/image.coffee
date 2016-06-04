@@ -66,7 +66,6 @@ renderBlob = (image, tiles) ->
       tileBuffer = tiles[idx]
 
       tileImg = new Image
-
       location =
         x: x*image.tilesize.x
         y: y*image.tilesize.y
@@ -78,10 +77,49 @@ renderBlob = (image, tiles) ->
 
   return canvas
 
+loadImage = (encoded) ->
+  return new Promise (fufill, reject) ->
+    img = new Image
+    img.onload = () ->
+      return fufill img
+    img.onerror = reject
+    img.src = encoded
+
+imageFromBlob = (blob, tilesize) ->
+  loadImage blob
+  .then (img) ->
+    canvas = new Canvas img.width, img.height
+    ctx = canvas.getContext '2d'
+    ctx.drawImage img, 0, 0, img.width, img.height
+    return Promise.resolve canvas
+  .then (canvas) ->
+    shape =
+      x: Math.ceil(canvas.width / tilesize.x)
+      y: Math.ceil(canvas.height / tilesize.y)
+    tiles = []
+    for ty in [0...shape.y]
+      for tx in [0...shape.x]
+        tileCanvas = new Canvas tilesize.x, tilesize.y
+        tileImg = new Image
+        tileImg.src = tileCanvas.toBuffer()
+        location =
+          x: tx*tilesize.x
+          y: ty*tilesize.y
+        ctx = canvas.getContext '2d'
+        ctx.drawImage tileImg, 0, 0, tilesize.x, tilesize.y
+        tiles.push tileCanvas
+    return Promise.resolve { shape: shape, tiles: tiles }
+  .then (data) ->
+    console.log 't', data
+    Promise.resolve data
+
+
 module.exports =
   repeat: repeatedImage
   construct: serializeImage
   hash: ipld.multihash
   deserialize: ipld.unmarshal
   render: renderBlob
+  tile: imageFromBlob
+  
 

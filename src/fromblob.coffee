@@ -1,6 +1,20 @@
 
 ipfsAPI = require 'ipfs-api'
 image = require './image'
+bluebird = require 'bluebird'
+fs = require 'fs'
+
+readFile = bluebird.promisify fs.readFile
+
+savePNGBuffer = (canvas, path) ->
+  return new Promise (fufill, reject) ->
+    buf = new Buffer []
+    stream = canvas.pngStream()
+    stream.on 'error', reject
+    stream.on 'data', (chunk) ->
+      buf = Buffer.concat [buf, chunk]
+    stream.on 'end', ->
+      return fufill buf
 
 exports.main = main = () ->
 
@@ -9,16 +23,39 @@ exports.main = main = () ->
   # upload the tiles to IPFS
   # construct a IPLD Image for these tiles
 
-  # FIXME: actuall take input image. Now assumes the tile is pre-existing on IPFS, and is correct size
-  hash = process.argv[2]
-
-  shape = { x: 4, y: 3 }
-  repeated = image.repeat shape, hash
-  m = image.construct shape, repeated
+  inputpath = process.argv[2]
+  tilesize =
+    x: 512
+    y: 256
 
   # put this IPLD object into IPFS
   ipfs = ipfsAPI {host: 'localhost', port: '5001', procotol: 'http'}
-  ipfs.block.put(m)
+
+  Promise.resolve(inputpath)
+  .then readFile
+  .then (buffer) ->
+    return image.tile buffer, tilesize
+  .then (data) ->
+    # upload tiles to IPFS
+    upload = (canvas) ->
+      savePNGBuffer(canvas)
+      .then (buffer) ->
+        console.log 'b', buffer
+        fs.writeFileSync 'tile0.png', buffer
+        console.log 'wrote tile'
+        Promise.resolve buffer
+      .then ipfs.block.put
+      .then (object) ->
+        Promise.resolve object.Key
+
+    data.tiles = [ data.tiles[0] ]
+    data.tiles = [ ]
+    bluebird.resolve(data.tiles).map upload
+    .then (hashes) ->
+      console.log 'hashes', hashes
+      img = image.construct data.shape, []
+      Promise.resolve img
+    .then ipfs.block.put
   .then (block) ->
     console.log 'ipfs hash: ', block.Key
   .catch (e) ->
