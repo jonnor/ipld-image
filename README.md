@@ -84,11 +84,11 @@ Pseudo-YAML structure.
 
 # The Image this data was derived from, if any
 # It SHOULD be used when processing an image, say when overlaying text, changing colors etc
-derivedfrom: { '\': Image }
+derivedfrom: { '/': Image }
 
 # If lossy compressed, this SHOULD be set to a losslessly compressed version
 # If processing an image, and this is set, the client SHOULD use canonicalversion instead of this one
-canonicalversion: { '\': Image }
+canonicalversion: { '/': Image }
 
 # size of each tile
 # The tile size should be such that each Tile is less than the IPFS block size
@@ -103,6 +103,8 @@ tiles: { x: 10, y: 15 }
 
 # which part of the spanned data is visible
 # this allows re-using tiles even doing crops/views which don't
+# If not specified, the boundary is implicitly
+# x: 0, y: 0, width: tilesize.x*tiles.x, height: tilesize.y*tiles.y
 boundary:
   x: 10
   y: 10
@@ -110,11 +112,11 @@ boundary:
   height: 1000
 
 # mipmap structure containing the image data
-level0: { '\': TileList } # n=tiles.x*tiles.y
-level1: { '\': TileList } [ .. ] # n/=4
-level2: { '\': TileList } # n/=4
+level0: { '/': TileList } # n=tiles.x*tiles.y
+level1: { '/': TileList } [ .. ] # n/=4
+level2: { '/': TileList } # n/=4
 ...
-levelH: { '\': TileList } n=1
+levelH: { '/': TileList } n=1
 ```
 
 ```yaml
