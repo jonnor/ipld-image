@@ -77,60 +77,60 @@ it is a set of tiles, with each tile containing a piece of the pixel data.
 Pseudo-YAML structure.
 
 ```yaml
-  ## Image
+## Image
 
-  # IPLD-image protocol version
-  'ipld-image-version': 1
+# IPLD-image protocol version
+'ipld-image-version': 1
 
-  # The Image this data was derived from, if any
-  # It SHOULD be used when processing an image, say when overlaying text, changing colors etc
-  derivedfrom: { '\': Image }
+# The Image this data was derived from, if any
+# It SHOULD be used when processing an image, say when overlaying text, changing colors etc
+derivedfrom: { '\': Image }
 
-  # If lossy compressed, this SHOULD be set to a losslessly compressed version
-  # If processing an image, and this is set, the client SHOULD use canonicalversion instead of this one
-  canonicalversion: { '\': Image }
+# If lossy compressed, this SHOULD be set to a losslessly compressed version
+# If processing an image, and this is set, the client SHOULD use canonicalversion instead of this one
+canonicalversion: { '\': Image }
 
-  # size of each tile
-  tilesize: { x: 256, y: 128 }
-  # number of tiles spanned.
-  tiles: { x: 10, y: 15 }
+# size of each tile
+tilesize: { x: 256, y: 128 }
+# number of tiles spanned.
+tiles: { x: 10, y: 15 }
 
-  # The size of the image spanned by the tiles (in pixels) is:
-  # [tilesize.X*tiles.x , tilesize*tiles.y]
-  # here, 2560px by 1920
+# The size of the image spanned by the tiles (in pixels) is:
+# [tilesize.X*tiles.x , tilesize*tiles.y]
+# here, 2560px by 1920
 
-  # which part of the spanned data is visible
-  # this allows re-using tiles even doing crops/views which don't
-  boundary:
-    x: 10
-    y: 10
-    width: 1000
-    height: 1000
+# which part of the spanned data is visible
+# this allows re-using tiles even doing crops/views which don't
+boundary:
+  x: 10
+  y: 10
+  width: 1000
+  height: 1000
 
-  # mipmap structure containing the image data
-  level0: { '\': TileList } # n=tiles.x*tiles.y
-  level1: { '\': TileList } [ .. ] # n/=4
-  level2: { '\': TileList } # n/=4
-  ...
-  levelH: { '\': TileList } n=1
+# mipmap structure containing the image data
+level0: { '\': TileList } # n=tiles.x*tiles.y
+level1: { '\': TileList } [ .. ] # n/=4
+level2: { '\': TileList } # n/=4
+...
+levelH: { '\': TileList } n=1
 ```
 
 ```yaml
-  ## Tile
-  # format of data
-  format: "png-idat"
-  # size of data in pixels
-  size: { x: 256, y: 128 }
-  # link to the chunk of image data
-  data: {"/",  }
+## Tile
+# format of data
+format: "png-idat"
+# size of data in pixels
+size: { x: 256, y: 128 }
+# link to the chunk of image data
+data: {"/",  }
 ```
 
 ```yaml
-  ## TileList
-  # stored in a scanline fashion
-  # ie: the first tile is at x=0,y=0, then follows y=0, x=1,2,3,4,5 -> (tiles.x-1)
-  # then everything in y=1. Repeat untill all rows are included
-  [ { '/': Tile,} { '/': Tile } ... ]
+## TileList
+# stored in a scanline fashion
+# ie: the first tile is at x=0,y=0, then follows y=0, x=1,2,3,4,5 -> (tiles.x-1)
+# then everything in y=1. Repeat untill all rows are included
+[ { '/': Tile,} { '/': Tile } ... ]
 ```
 
 An advantage of this initial spec is that the `Tile`, containing the image data,
@@ -174,15 +174,17 @@ However it becomes really tricky to assemble a linear substream for a rectangula
 2) Then take a downscaled crop of that image (operating on the tiles of higher mipmap level), display as file
 3) Take this image as an input, and process (change colors etc), persist result as new image, display this.
 
-## 0.1.0: Minimally useful
+### 0.1.0: Minimally useful
 
 * Figure out how we do this without IPFS 0.5.
 Putting serialized IPLD structure into database/IPFS as JSON blob?
 * Implement support in imgflo-server
 * Split out spec from implementation, put into https://github.com/ipfs/specs
 
-## Later
+### Later
 
 * Sketch out how this could be used to implement a GeglTileStore, for backing buffers in
 [GEGL](http://gegl.org), the image processing library used by imgflo-server and GIMP
 * Consider extending for video
+
+
