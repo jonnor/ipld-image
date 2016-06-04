@@ -58,19 +58,24 @@ renderBlob = (image, tiles) ->
   ctx = canvas.getContext '2d'
 
   shape = image.tiles
+
+  blits = []
+
   for y in [0...shape.y]
     for x in [0...shape.x]
       idx = (y*shape.y)+x
       console.log 'idx', idx
       tileBuffer = tiles[idx]
 
-      console.log tileBuffer
       tileImg = new Image
 
+      location =
+        x: x*image.tilesize.x
+        y: y*image.tilesize.y
       tileImg.onerror = (err) ->
         throw err
       tileImg.onload = () ->
-        ctx.drawImage tileImg, 0, 0, image.tilesize.x, image.tilesize.x
+        ctx.drawImage tileImg, location.x, location.y, image.tilesize.x, image.tilesize.x
       tileImg.src = tileBuffer
 
   return canvas
