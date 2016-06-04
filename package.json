@@ -1,0 +1,33 @@
+{
+  "name": "ipld-image",
+  "version": "0.0.1",
+  "description": "Express images as Interplanetary Linked Data",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script/register tests/*.coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonnor/ipld-image.git"
+  },
+  "keywords": [
+    "IPFS",
+    "IPLD",
+    "image",
+    "processing"
+  ],
+  "author": "Jon Nordby <jononor@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jonnor/ipld-image/issues"
+  },
+  "homepage": "https://github.com/jonnor/ipld-image#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "coffee-script": "^1.10.0",
+    "mocha": "^2.5.3"
+  }
+}
