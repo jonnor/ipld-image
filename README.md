@@ -170,13 +170,16 @@ However it becomes really tricky to assemble a linear substream for a rectangula
 
 ### 0.0.1: Proof of concept
 
-* Define an initial dataformat for a tile-based, mipmapped datastructure for images
-* Prototype some code using this format
-* Figure out if and how one can make a valid image by a concatinating tile together
-* Define and make an initial proof of concept.
+```
 1) Be able to take an input blob image, convert it into IPLD image representation, push into IPFS.
 2) Then take a downscaled crop of that image (operating on the tiles of higher mipmap level), display as file
 3) Take this image as an input, and process (change colors etc), persist result as new image, display this.
+```
+
+* Prototype some code using this format
+* Figure out if and how one can make a valid image by a concatinating tile together
+* Define and make an initial proof of concept.
+
 
 ### 0.1.0: Minimally useful
 

@@ -9,6 +9,9 @@
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script/register tests/*.coffee"
   },
+  "bin": {
+    "ipld-image-fromblob": "./bin/ipld-image-fromblob"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jonnor/ipld-image.git"
@@ -29,5 +32,10 @@
     "chai": "^3.5.0",
     "coffee-script": "^1.10.0",
     "mocha": "^2.5.3"
+  },
+  "dependencies": {
+    "ipfs-api": "^4.1.0",
+    "ipfs-ipld": "^2.0.0",
+    "ipld": "^0.6.0"
   }
 }
