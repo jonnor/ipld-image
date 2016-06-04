@@ -1,7 +1,10 @@
 
 ipfsIPLD = require 'ipfs-ipld'
 ipld = require 'ipld'
+Canvas = require 'canvas'
+Image = Canvas.Image
 
+# TODO: use a plain JS object or class, with have save/load to IPLD/MerkleDAG
 serializeImage = (shape, tilehashes) ->
   image =
     'ipld-image-version': 1
@@ -40,6 +43,22 @@ repeatedImage = (shape, tilehash) ->
     for x in [0...shape.x]
       tiles.push tilehash
   return tiles
+
+# TODO: don't instead render into memory, find out how to concat PNG IDAT chunks
+# TODO: support cropping
+# TODO: support 
+renderBlob = (image) ->
+  imageSize =
+    x: image.tilesize.x*image.tiles.x
+    y: image.tilesize.y*image.tiles.y
+  console.log ''
+
+  canvas = new Canvas(200, 200)
+  img = new Image;
+  img.src = canvas.toBuffer();
+  ctx.drawImage(img, 0, 0, 50, 50);
+  ctx.drawImage(img, 50, 0, 50, 50);
+  ctx.drawImage(img, 100, 0, 50, 50);
 
 module.exports =
   repeat: repeatedImage

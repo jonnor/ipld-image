@@ -194,6 +194,14 @@ Putting serialized IPLD structure into database/IPFS as JSON blob?
 [GEGL](http://gegl.org), the image processing library used by imgflo-server and GIMP
 * Consider extending for video
 
+## Ideas
+
+### Perceptual encoding
+Right now, we can deducplicate parts of images when the encoded representation of tiles are identical.
+However even the tiniest, impercievable change, like a 1 bit quantification error, will invalidate deduplication.
+Some [existing discussion here](https://github.com/ipfs/faq/issues/15), with references to academic papers.
+
+
 ## Contributors
 
 * [@Kubuxu](https://github.com/Kubuxu)
