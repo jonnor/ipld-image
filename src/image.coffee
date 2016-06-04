@@ -52,7 +52,6 @@ renderBlob = (image, tiles) ->
   imageSize =
     x: image.tilesize.x*image.tiles.x
     y: image.tilesize.y*image.tiles.y
-  console.log 's', imageSize
 
   canvas = new Canvas imageSize.x, imageSize.y
   ctx = canvas.getContext '2d'
@@ -64,7 +63,6 @@ renderBlob = (image, tiles) ->
   for y in [0...shape.y]
     for x in [0...shape.x]
       idx = (y*shape.y)+x
-      console.log 'idx', idx
       tileBuffer = tiles[idx]
 
       tileImg = new Image

@@ -51,11 +51,8 @@ exports.main = main = () ->
   .then (img) ->
     fetchTiles ipfs, img
     .then (tiles) ->
-      fs.writeFileSync 'tile0.png', tiles[0]
-      console.log 'wrote tile'
       image.render img, tiles
    .then (canvas) ->
-    console.log 'c', canvas
     savePNGFile canvas, outpath
   .then (filepath) ->
     console.log filepath
