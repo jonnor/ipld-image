@@ -187,4 +187,7 @@ Putting serialized IPLD structure into database/IPFS as JSON blob?
 [GEGL](http://gegl.org), the image processing library used by imgflo-server and GIMP
 * Consider extending for video
 
+## Contributors
 
+* [@Kubuxu](https://github.com/Kubuxu)
+* [@jonnor](https://github.com/jonnor)
