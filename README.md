@@ -201,6 +201,10 @@ Right now, we can deducplicate parts of images when the encoded representation o
 However even the tiniest, impercievable change, like a 1 bit quantification error, will invalidate deduplication.
 Some [existing discussion here](https://github.com/ipfs/faq/issues/15), with references to academic papers.
 
+## Related projects
+
+* [IIIF](http://iiif.io/api/presentation/2.1/#status-of-this-document), standard for mipmapped images.
+Also [ipfs-iiif](https://gist.github.com/edsilv/97759a93cb7c5f0fedb8178fee5e1dd3)
 
 ## Contributors
 
