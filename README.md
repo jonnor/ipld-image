@@ -3,12 +3,19 @@ ipld-image is an attempt to create a structured representation of images on [IPF
 that allows to do image processing operations directly on this structure, instead of
 having to operate on opaque blobs of serialized images (like a PNG or JPEG).
 
+Primarily this is done by being able to address parts of the image,
+both in X/Y, and at multiple levels-of-detail through a tiled mipmap pyramid.
+
 ## Status
 
-**Just a crazy idea**. See [TODO](#todo)
+**0.0.1: Initial proof of concept works**
 
+* `ipld-image-fromblob` can take an image file (PNG), and upload to IPFS as an IPLD image
+* `ipld-image-toblob` can take an hash of IPLD image, and render an image file (PNG) from it
 * ipld-image is just a working name
 * When working, spec will go to https://github.com/ipfs/specs
+
+See [TODO](#todo) for more details
 
 ## Motivation
 
@@ -72,7 +79,7 @@ This also means that an image at level=2 (1/4 width and height) is
 1/16 the number of pixels that needs to be downloaded and processed.
 
 ipld-image uses a mipmapped structure, but instead of each level being a continous buffer,
-it is a set of tiles, with each tile containing a piece of the pixel data.
+it is a set of tiles, with each tile containing a encoded piece of the pixel data.
 
 Pseudo-YAML structure.
 
@@ -168,23 +175,22 @@ However it becomes really tricky to assemble a linear substream for a rectangula
 
 ## TODO
 
-### 0.0.1: Proof of concept
+### 0.0.2: Proof of concept
 
 ```
-1) Be able to take an input blob image, convert it into IPLD image representation, push into IPFS.
 2) Then take a downscaled crop of that image (operating on the tiles of higher mipmap level), display as file
 3) Take this image as an input, and process (change colors etc), persist result as new image, display this.
 ```
 
-* Prototype some code using this format
-* Figure out if and how one can make a valid image by a concatinating tile together
-* Define and make an initial proof of concept.
-
+* Set and respect the `boundary` property
+* Actually support mipmap tile pyramid. Building the pyramid, and rendering low-resolution output using higher levels
+* Support for rendering out a cropped version / area of interest
 
 ### 0.1.0: Minimally useful
 
-* Figure out how we do this without IPFS 0.5.
-Putting serialized IPLD structure into database/IPFS as JSON blob?
+* Write tests
+* Figure out how to best support IPFS 0.4 (no native IPLD). Use a MerkleDAG object?
+Fallback: serialize IPLD structure into database/IPFS as JSON blob?
 * Implement support in imgflo-server
 * Split out spec from implementation, put into https://github.com/ipfs/specs
 
@@ -192,7 +198,7 @@ Putting serialized IPLD structure into database/IPFS as JSON blob?
 
 * Sketch out how this could be used to implement a GeglTileStore, for backing buffers in
 [GEGL](http://gegl.org), the image processing library used by imgflo-server and GIMP
-* Consider extending for video
+* Consider extending for video processing
 
 ## Ideas
 
@@ -200,6 +206,24 @@ Putting serialized IPLD structure into database/IPFS as JSON blob?
 Right now, we can deducplicate parts of images when the encoded representation of tiles are identical.
 However even the tiniest, impercievable change, like a 1 bit quantification error, will invalidate deduplication.
 Some [existing discussion here](https://github.com/ipfs/faq/issues/15), with references to academic papers.
+
+### Direct streaming rendering
+Right now each tile is stored as a proper PNG image.
+In order to construct an image file for rendering, we decode each of the neccesary tiles,
+blit it into an in-memory RGBA image representation, and then encode this as a new PNG file.
+
+What if instead we could store tiles as compressed data (without headers), then
+assemble an image file by concatating a new header with a set of such pre-encoded tiles.
+This would skip both the decoding and re-encoding steps.
+This would reducing neccesary computations and memory usage significantly.
+
+PNG might not be suitable for this, as the encoded stream seems to be in scanline ordering.
+It may require storing each scanline of each tile as a separate chunk..
+
+This is primarily of interest when IPLD is the core protocol for IPFS (0.5), and there is
+support for IPLD path/selectors including ordering. As that way, one could theoretically
+express the rendering of an output image file using only IPFS primitives.
+
 
 ## Related projects
 
