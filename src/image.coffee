@@ -59,7 +59,6 @@ renderBlob = (image, tiles) ->
   ctx = canvas.getContext '2d'
 
   shape = image.tiles
-
   indices = mapRowColumn shape, (tx, ty) ->
     idx = (ty*shape.x)+tx
     location =
@@ -67,13 +66,13 @@ renderBlob = (image, tiles) ->
       y: ty*image.tilesize.y
     return { index: idx, location: location }
 
-  renderTile = (t) ->
+  renderTileIntoCanvas = (t) ->
     buffer = tiles[t.index]
     loadImage buffer
     .then (img) ->
       ctx.drawImage img, t.location.x, t.location.y, image.tilesize.x, image.tilesize.y
 
-  bluebird.resolve(indices).map(renderTile)
+  bluebird.resolve(indices).map(renderTileIntoCanvas)
   .then (tiles) ->
     Promise.resolve canvas
 
@@ -97,19 +96,25 @@ imageFromBlob = (blob, tilesize) ->
     shape =
       x: Math.ceil(canvas.width / tilesize.x)
       y: Math.ceil(canvas.height / tilesize.y)
-    tiles = []
-    for ty in [0...shape.y]
-      for tx in [0...shape.x]
-        location =
-          x: tx*tilesize.x
-          y: ty*tilesize.y
-        imageData = ctx.getImageData location.x, location.y, tilesize.x, tilesize.y
-        tileCanvas = new Canvas tilesize.x, tilesize.y
-        buf = tileCanvas.toBuffer()
-        tileCtx = tileCanvas.getContext '2d'
-        tileCtx.putImageData imageData, 0, 0
-        tiles.push tileCanvas
-    return Promise.resolve { shape: shape, tiles: tiles }
+
+    indices = mapRowColumn shape, (tx, ty) ->
+      location =
+        x: tx*tilesize.x
+        y: ty*tilesize.y
+      return { location: location }
+
+    createTile = (t) ->
+      imageData = ctx.getImageData t.location.x, t.location.y, tilesize.x, tilesize.y
+      tileCanvas = new Canvas tilesize.x, tilesize.y
+      buf = tileCanvas.toBuffer()
+      tileCtx = tileCanvas.getContext '2d'
+      tileCtx.putImageData imageData, 0, 0
+      return Promise.resolve tileCanvas
+
+    bluebird.resolve(indices).map createTile
+    .then (tiles) ->
+      return Promise.resolve { shape: shape, tiles: tiles }
+
   .then (data) ->
     Promise.resolve data
 
