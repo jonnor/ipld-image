@@ -25,7 +25,7 @@ exports.main = main = () ->
 
   inputpath = process.argv[2]
   tilesize =
-    x: 512
+    x: 256
     y: 256
 
   # put this IPLD object into IPFS
@@ -39,21 +39,14 @@ exports.main = main = () ->
     # upload tiles to IPFS
     upload = (canvas) ->
       savePNGBuffer(canvas)
-      .then (buffer) ->
-        console.log 'b', buffer
-        fs.writeFileSync 'tile0.png', buffer
-        console.log 'wrote tile'
-        Promise.resolve buffer
       .then ipfs.block.put
       .then (object) ->
         Promise.resolve object.Key
 
-    data.tiles = [ data.tiles[0] ]
-    data.tiles = [ ]
     bluebird.resolve(data.tiles).map upload
     .then (hashes) ->
       console.log 'hashes', hashes
-      img = image.construct data.shape, []
+      img = image.construct data.shape, hashes
       Promise.resolve img
     .then ipfs.block.put
   .then (block) ->
