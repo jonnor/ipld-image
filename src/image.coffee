@@ -3,6 +3,7 @@ ipfsIPLD = require 'ipfs-ipld'
 ipld = require 'ipld'
 Canvas = require 'canvas'
 Image = Canvas.Image
+bluebird = require 'bluebird'
 
 # TODO: use a plain JS object or class, with have save/load to IPLD/MerkleDAG
 serializeImage = (shape, tilehashes) ->
@@ -37,14 +38,15 @@ serializeImage = (shape, tilehashes) ->
 link = (hash) ->
   return { '/': hash }
 
-repeatedImage = (shape, tilehash) ->
-  tiles = []
-  for y in [0...shape.y]
-    for x in [0...shape.x]
-      tiles.push tilehash
-  return tiles
 
-# TODO: don't instead render into memory, find out how to concat PNG IDAT chunks
+# NOTE: only sync
+mapRowColumn = (shape, func) ->
+  results = []
+  for ty in [0...shape.y]
+    for tx in [0...shape.x]
+      results.push func(tx, ty, shape)
+  return results
+
 # TODO: handle fetching of tiles dynamically, take ipfs as argument
 # TODO: support cropping
 # TODO: support downscaling by accessing mipmap structure
@@ -58,24 +60,22 @@ renderBlob = (image, tiles) ->
 
   shape = image.tiles
 
-  blits = []
+  indices = mapRowColumn shape, (tx, ty) ->
+    idx = (ty*shape.x)+tx
+    location =
+      x: tx*image.tilesize.x
+      y: ty*image.tilesize.y
+    return { index: idx, location: location }
 
-  for ty in [0...shape.y]
-    for tx in [0...shape.x]
-      idx = (ty*shape.x)+tx
-      tileBuffer = tiles[idx]
+  renderTile = (t) ->
+    buffer = tiles[t.index]
+    loadImage buffer
+    .then (img) ->
+      ctx.drawImage img, t.location.x, t.location.y, image.tilesize.x, image.tilesize.y
 
-      tileImg = new Image
-      location =
-        x: tx*image.tilesize.x
-        y: ty*image.tilesize.y
-      tileImg.onerror = (err) ->
-        throw err
-      tileImg.onload = () ->
-        ctx.drawImage tileImg, location.x, location.y, image.tilesize.x, image.tilesize.y
-      tileImg.src = tileBuffer
-
-  return canvas
+  bluebird.resolve(indices).map(renderTile)
+  .then (tiles) ->
+    Promise.resolve canvas
 
 loadImage = (encoded) ->
   return new Promise (fufill, reject) ->
@@ -115,7 +115,6 @@ imageFromBlob = (blob, tilesize) ->
 
 
 module.exports =
-  repeat: repeatedImage
   construct: serializeImage
   hash: ipld.multihash
   deserialize: ipld.unmarshal
