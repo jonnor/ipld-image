@@ -151,6 +151,14 @@ is self-describing yet has. This should allow reusing the Tile
 
 Open questions
 
+* How to deal with fact that images can be non-square and have width/height which are not multiples of 2.
+Mipmaps usually have these restrictions, and it makes it very simple because it is very clear how many
+levels there are (`log2(size)`), and the shape of each level (always `previoussize/2`),
+and each tile is completely filled with meaningful data.
+Should we allow different sized tiles, so that there is always meaningful data in them?
+Only on left/bottom edge? Or also along right/top edge - as that would allow reusing the tiles there,
+for having a layout with multiple images in them, with no gaps/seamless...
+Though at that time, why not allow also in the middle?
 * Is storing all levels as part of image the best approach?
 Alternatives are:
 a) Let each level link to level above and/or above.
