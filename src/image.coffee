@@ -60,19 +60,19 @@ renderBlob = (image, tiles) ->
 
   blits = []
 
-  for y in [0...shape.y]
-    for x in [0...shape.x]
-      idx = (y*shape.y)+x
+  for ty in [0...shape.y]
+    for tx in [0...shape.x]
+      idx = (ty*shape.x)+tx
       tileBuffer = tiles[idx]
 
       tileImg = new Image
       location =
-        x: x*image.tilesize.x
-        y: y*image.tilesize.y
+        x: tx*image.tilesize.x
+        y: ty*image.tilesize.y
       tileImg.onerror = (err) ->
         throw err
       tileImg.onload = () ->
-        ctx.drawImage tileImg, location.x, location.y, image.tilesize.x, image.tilesize.x
+        ctx.drawImage tileImg, location.x, location.y, image.tilesize.x, image.tilesize.y
       tileImg.src = tileBuffer
 
   return canvas
@@ -93,24 +93,24 @@ imageFromBlob = (blob, tilesize) ->
     ctx.drawImage img, 0, 0, img.width, img.height
     return Promise.resolve canvas
   .then (canvas) ->
+    ctx = canvas.getContext '2d'
     shape =
       x: Math.ceil(canvas.width / tilesize.x)
       y: Math.ceil(canvas.height / tilesize.y)
     tiles = []
     for ty in [0...shape.y]
       for tx in [0...shape.x]
-        tileCanvas = new Canvas tilesize.x, tilesize.y
-        tileImg = new Image
-        tileImg.src = tileCanvas.toBuffer()
         location =
           x: tx*tilesize.x
           y: ty*tilesize.y
-        ctx = canvas.getContext '2d'
-        ctx.drawImage tileImg, 0, 0, tilesize.x, tilesize.y
+        imageData = ctx.getImageData location.x, location.y, tilesize.x, tilesize.y
+        tileCanvas = new Canvas tilesize.x, tilesize.y
+        buf = tileCanvas.toBuffer()
+        tileCtx = tileCanvas.getContext '2d'
+        tileCtx.putImageData imageData, 0, 0
         tiles.push tileCanvas
     return Promise.resolve { shape: shape, tiles: tiles }
   .then (data) ->
-    console.log 't', data
     Promise.resolve data
 
 

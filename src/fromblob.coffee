@@ -45,12 +45,11 @@ exports.main = main = () ->
 
     bluebird.resolve(data.tiles).map upload
     .then (hashes) ->
-      console.log 'hashes', hashes
       img = image.construct data.shape, hashes
       Promise.resolve img
     .then ipfs.block.put
   .then (block) ->
-    console.log 'ipfs hash: ', block.Key
+    console.log block.Key
   .catch (e) ->
     console.error e
     process.exit 1
