@@ -37,13 +37,18 @@ exports.main = main = () ->
     return image.tile buffer, tilesize
   .then (data) ->
     # upload tiles to IPFS
-    upload = (canvas) ->
-      savePNGBuffer(canvas)
+    upload = (tile) ->
+      savePNGBuffer(tile.canvas)
       .then ipfs.block.put
       .then (object) ->
-        Promise.resolve object.Key
+        tile.hash = object.Key
+        Promise.resolve tile
 
-    bluebird.resolve(data.tiles).map upload
+    tiles = []
+    for level in data.levels
+      for t in level
+        tiles.push t
+    bluebird.resolve(tiles).map upload
     .then (hashes) ->
       img = image.construct data.shape, hashes
       Promise.resolve img

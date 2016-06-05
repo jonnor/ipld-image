@@ -6,19 +6,21 @@ Image = Canvas.Image
 bluebird = require 'bluebird'
 
 # TODO: use a plain JS object or class, with have save/load to IPLD/MerkleDAG
-serializeImage = (shape, tilehashes) ->
+serializeImage = (shape, tiles) ->
   image =
     'ipld-image-version': 1
     # derivedfrom: { '\': Image }
     # canonicalversion: { '\': Image }
     tilesize: { x: 256, y: 256 }
-    tiles: shape
+    tiles: shape # FIXME: move this to be part of the TileList (on each level)? .shape and .tiles 
     #  boundary:
     #    x: 10
     #    y: 10
     #    width: 1000
     #    height: 1000
     # mipmap structure containing the image data
+
+  # FIXME: put the incoming tiles into the correct structure here
 
   # FIXME: make list be a link, to follow spec
   image.level0 = []
@@ -45,6 +47,23 @@ mapRowColumn = (shape, func) ->
   for ty in [0...shape.y]
     for tx in [0...shape.x]
       results.push func(tx, ty, shape)
+  return results
+
+round2 = (n) ->
+  return 2*Math.ceil(n/2)
+
+mapPyramid = (shape, func) ->
+  level = (basetiles) ->
+    return Math.ceil(Math.log2(basetiles))
+  levels = Math.max(level(shape.x), level(shape.y))
+  console.log 'l', shape, levels
+  results = []
+  for level in [0..levels]
+    div = Math.pow 2, level
+    s =
+      x: Math.ceil(shape.x/div)
+      y: Math.ceil(shape.y/div)
+    results.push mapRowColumn(s, (tx, ty) ->  func(tx, ty, level) )
   return results
 
 # TODO: handle fetching of tiles dynamically, take ipfs as argument
@@ -97,23 +116,31 @@ imageFromBlob = (blob, tilesize) ->
       x: Math.ceil(canvas.width / tilesize.x)
       y: Math.ceil(canvas.height / tilesize.y)
 
-    indices = mapRowColumn shape, (tx, ty) ->
+    indices = mapPyramid shape, (tx, ty, level) ->
+      mul = Math.pow 2, level
       location =
-        x: tx*tilesize.x
-        y: ty*tilesize.y
-      return { location: location }
+        x: tx*tilesize.x*mul
+        y: ty*tilesize.y*mul
+        width: tilesize.y*mul
+        height: tilesize.y*mul
+      return { location: location, level: level, tx: tx, ty: ty }
 
     createTile = (t) ->
-      imageData = ctx.getImageData t.location.x, t.location.y, tilesize.x, tilesize.y
+      # If this way of downscaling is not good enough, maybe use https://github.com/nodeca/pica
+      imageData = ctx.getImageData t.location.x, t.location.y, t.location.width, t.location.height
       tileCanvas = new Canvas tilesize.x, tilesize.y
       buf = tileCanvas.toBuffer()
       tileCtx = tileCanvas.getContext '2d'
       tileCtx.putImageData imageData, 0, 0
-      return Promise.resolve tileCanvas
+      t.canvas = tileCanvas
+      return Promise.resolve t
 
-    bluebird.resolve(indices).map createTile
-    .then (tiles) ->
-      return Promise.resolve { shape: shape, tiles: tiles }
+    createLevel = (tiles) ->
+      bluebird.resolve(tiles).map createTile
+
+    bluebird.resolve(indices).map createLevel
+    .then (levels) ->
+      return Promise.resolve { shape: shape, levels: levels }
 
   .then (data) ->
     Promise.resolve data
