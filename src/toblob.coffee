@@ -31,7 +31,6 @@ fetchTiles = (ipfs, image) ->
     ipfs.block.get h
     .then readResponse
     .then (buf) ->
-      buf = buf.slice 8
       return buf
 
   return hashes.map getHash, concurrency: 10
