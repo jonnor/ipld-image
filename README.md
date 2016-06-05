@@ -13,7 +13,8 @@ both in X/Y, and at multiple levels-of-detail through a tiled mipmap pyramid.
 * `ipld-image-fromblob` can take an image file (PNG), and upload to IPFS as an IPLD image
 * `ipld-image-toblob` can take an hash of IPLD image, and render an image file (PNG) from it
 * ipld-image is just a working name
-* When working, spec will go to https://github.com/ipfs/specs
+* **data format is not stable**
+* When working, spec may go to https://github.com/ipfs/specs
 
 See [TODO](#todo) for more details
 
@@ -196,6 +197,8 @@ Fallback: serialize IPLD structure into database/IPFS as JSON blob?
 
 ### Later
 
+* Support browser/client-side
+* Support js-ipfs natively
 * Sketch out how this could be used to implement a GeglTileStore, for backing buffers in
 [GEGL](http://gegl.org), the image processing library used by imgflo-server and GIMP
 * Consider extending for video processing
