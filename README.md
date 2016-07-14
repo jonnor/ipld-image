@@ -14,8 +14,7 @@ This is achieved by representing the image as a tiled mipmap pyramid.
 * `ipld-image-fromblob` can take an image file (PNG), and upload to IPFS as an IPLD image
 * `ipld-image-toblob` can take an hash of IPLD image, and render an image file (PNG) from it
 * ipld-image is just a working name
-* **data format is not stable**
-* When working, spec may go to https://github.com/ipfs/specs
+* **data format is not stable yet**
 
 See [TODO](#todo) for more details
 
@@ -74,7 +73,7 @@ A [mipmap](https://en.wikipedia.org/wiki/Mipmap) is an structure for efficiently
 images at different levels of detail. At the lowest level are the original image in full resolution,
 then at each level up the image resolution is halved in both width and height.
 So 2x2=4 tiles at level N becomes 1 tile at level N+1.
-A fully mipmapped structure is at most 33% larger than the original image.
+With square images, A fully mipmapped structure is at most 33% larger than the original.
 
 This also means that an image at level=2 (1/4 width and height) is
 1/16 the number of pixels that needs to be downloaded and processed.
@@ -100,7 +99,7 @@ canonicalversion: { '/': Image }
 
 # size of each tile
 # The tile size should be such that each Tile is less than the IPFS block size
-# Currently block size is 256KB. An 256x256 pixel image with 3-4 bytes per pixel should almost always be under this
+# Currently IPFS block size is 256KB. An 256x256 px image with 3-4 bytes per pixel should almost always be below this
 tilesize: { x: 256, y: 128 }
 # number of tiles spanned.
 tiles: { x: 10, y: 15 }
@@ -141,7 +140,7 @@ data: {"/",  }
 ## TileList
 # stored in a scanline fashion
 # ie: the first tile is at x=0,y=0, then follows y=0, x=1,2,3,4,5 -> (tiles.x-1)
-# then everything in y=1. Repeat untill all rows are included
+# then everything in y=1. Repeat until all rows are included
 [ { '/': Tile,} { '/': Tile } ... ]
 ```
 
