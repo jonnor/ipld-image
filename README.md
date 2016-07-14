@@ -3,8 +3,9 @@ ipld-image is an attempt to create a structured representation of images on [IPF
 that allows to do image processing operations directly on this structure, instead of
 having to operate on opaque blobs of serialized images (like a PNG or JPEG).
 
-Primarily this is done by being able to address parts of the image,
-both in X/Y, and at multiple levels-of-detail through a tiled mipmap pyramid.
+The datastructure allows to address parts of the image in X/Y (for cropping, collages),
+on multiple levels-of-detail (for downsampling, thumbnails). 
+This is achieved by representing the image as a tiled mipmap pyramid.
 
 ## Status
 
@@ -30,8 +31,7 @@ The file typically contains compressed pixel data, and sometimes some metadata.
 So if we want to display the image, we have to download and process the whole file.
 For some formats one can stream only the beginning of a file, and from that get a lower-quality
 image from it. This is intended to allow [progressive rendering](https://blog.codinghorror.com/progressive-image-rendering/).
-Theoretically one could cancel the stream when one deems the quality high-enough, but no web browsers available does this
-- and unassisted it cannot know what quality is considered good-enough.
+Theoretically one could cancel the stream when one deems the quality high-enough, but no web browsers available does this - and unassisted it cannot know what quality is considered good-enough.
 
 This means that there is no space savings possible.
 This is inefficient, and painful - especially on slow pay-per-MB connections as is typical on mobile.
@@ -82,7 +82,7 @@ This also means that an image at level=2 (1/4 width and height) is
 ipld-image uses a mipmapped structure, but instead of each level being a continous buffer,
 it is a set of tiles, with each tile containing a encoded piece of the pixel data.
 
-Pseudo-YAML structure.
+The spec here is given as a pseudo-YAML structure.
 
 ```yaml
 ## Image
@@ -146,34 +146,53 @@ data: {"/",  }
 ```
 
 An advantage of this initial spec is that the `Tile`, containing the image data,
-is self-describing yet has. This should allow reusing the Tile
+is self-describing yet has no dependencies on its surroundings.
+This should allow reusing the `Tile` also in other `TileList`s or `Image`s.
 
+### Open questions
 
-Open questions
+#### Non-square images
 
-* How to deal with fact that images can be non-square and have width/height which are not multiples of 2.
-Mipmaps usually have these restrictions, and it makes it very simple because it is very clear how many
+How to deal with fact that images can be non-square and have width/height which are not multiples of 2?
+
+* Mipmaps usually have these restrictions, and it makes it very simple because it is very clear how many
 levels there are (`log2(size)`), and the shape of each level (always `previoussize/2`),
 and each tile is completely filled with meaningful data.
-Should we allow different sized tiles, so that there is always meaningful data in them?
+* Should we allow different sized tiles, so that there is always meaningful data in them?
 Only on left/bottom edge? Or also along right/top edge - as that would allow reusing the tiles there,
 for having a layout with multiple images in them, with no gaps/seamless...
 Though at that time, why not allow also in the middle?
-* Is storing all levels as part of image the best approach?
-Alternatives are:
-a) Let each level link to level above and/or above.
-b) let each tile link to the tiles on the level under. This means a lot of indirection
 * How to deal with fact that non-square images will not reduce down to a level with single. 
 Must one render transparency into chunks then?
 Kind-of a case where we get sparse-ness further up in the mipmaps
-* Should one allow multiple representations for a tile? Say different compression/formats
-* Should we allow sparse images (some areas not covered by tile).
-Problem is then need to spec out what this should be filled, which could be limiting. Transparent chunk?
-Also, would not have much space-saving because likely a fully transparent tile will already be (de-duplication is builtin).
-Non-rectangular images would have more to gain than... But then also need to be able to specify non-rectangular boundary (polygon etc)
-* Should we allow non-uniform chunk sizes? This heavily suggests sparse images also.
-However it becomes really tricky to assemble a linear substream for a rectangular image, if chunks can be any size and any location..
 
+#### Alternative tiles
+
+Is storing all levels as part of image the best approach?
+
+Some alternatives are:
+
+* a) Let each level link to level above and/or above.
+* b) let each tile link to the tiles on the level under. This means a lot of indirection
+
+#### Multiple representations for tiles
+
+Should one allow multiple representations for a tile? Say different compression/formats
+
+#### Sparse images?
+
+Should we allow sparse images (some areas not covered by tile).
+
+* Problem is then need to spec out what this should be filled, which could be limiting.  Transparent chunk?
+* Also, would not have much space-saving because likely a fully transparent tile will already be (de-duplication is builtin).
+* Non-rectangular images would have more to gain than... But then also need to be able to specify non-rectangular boundary (polygon etc)
+
+#### Non-uniform chunk sizes
+
+Should we allow non-uniform chunk sizes?
+
+* This heavily suggests sparse images also.
+* However it becomes really tricky to assemble a linear substream for a rectangular image, if chunks can be any size and any location...
 
 
 ## Transformation on the dataformat
@@ -186,25 +205,22 @@ However it becomes really tricky to assemble a linear substream for a rectangula
 
 ### 0.0.2: Proof of concept
 
-```
-2) Then take a downscaled crop of that image (operating on the tiles of higher mipmap level), display as file
-3) Take this image as an input, and process (change colors etc), persist result as new image, display this.
-```
-
-* Set and respect the `boundary` property
 * Actually support mipmap tile pyramid. Building the pyramid, and rendering low-resolution output using higher levels
+* Set and respect the `boundary` property
 * Support for rendering out a cropped version / area of interest
+* Write a little demo. Take an image blob, put it into IPFS as ipld-image, progress crop/downscaled, then display output
 
 ### 0.1.0: Minimally useful
 
-* Write tests
 * Figure out how to best support IPFS 0.4 (no native IPLD). Use a MerkleDAG object?
 Fallback: serialize IPLD structure into database/IPFS as JSON blob?
 * Implement support in imgflo-server
-* Split out spec from implementation, put into https://github.com/ipfs/specs
+* Write tests
 
 ### Later
 
+* Add a JSON Schema for the datastructure
+* Split out spec from implementation, put into https://github.com/ipfs/specs ?
 * Support browser/client-side
 * Support js-ipfs natively
 * Sketch out how this could be used to implement a GeglTileStore, for backing buffers in
